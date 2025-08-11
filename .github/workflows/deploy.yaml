@@ -33,11 +33,17 @@ jobs:
 
       - name: Generate file list
         run: |
+          echo "Generating file list..."
           echo "window.htmlFiles = [" > file-list.js
-          find . -name "*.html" ! -name "index.html" -type f | sed 's|^\./||' | sed 's/.*/"&",/' >> file-list.js
+          find . -name "*.html" ! -name "index.html" -type f | sed 's|^\./||' | while IFS= read -r file; do
+            echo "  \"$file\"," >> file-list.js
+          done
           echo "];" >> file-list.js
-          echo "Generated file-list.js:"
+          echo "Generated file-list.js content:"
           cat file-list.js
+          echo ""
+          echo "File size:" $(wc -c < file-list.js) "bytes"
+          echo "File exists:" $(test -f file-list.js && echo "yes" || echo "no")
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

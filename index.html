@@ -9,13 +9,15 @@
   <p>This is a simple static Github-Pages site to easily share my jupyter notebooks.</p>
   
   <ul id="notebook-list">Loading...</ul>
-  
-  <script src="file-list.js"></script>
+
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    // Fallback file list in case file-list.js doesn't load
+    window.htmlFiles = window.htmlFiles || [];
+    
+    function loadFileList() {
       const ul = document.getElementById("notebook-list");
       
-      if (typeof window.htmlFiles !== 'undefined' && window.htmlFiles.length > 0) {
+      if (window.htmlFiles && window.htmlFiles.length > 0) {
         ul.innerHTML = "";
         window.htmlFiles.forEach(file => {
           const li = document.createElement("li");
@@ -26,8 +28,26 @@
           ul.appendChild(li);
         });
       } else {
-        ul.innerHTML = "<li>No HTML files found.</li>";
+        ul.innerHTML = "<li>No HTML files found or file-list.js failed to load.</li>";
       }
+    }
+
+    // Try to load the external file-list.js
+    const script = document.createElement('script');
+    script.src = 'file-list.js';
+    script.onload = function() {
+      console.log('file-list.js loaded successfully');
+      loadFileList();
+    };
+    script.onerror = function() {
+      console.error('Failed to load file-list.js');
+      loadFileList();
+    };
+    document.head.appendChild(script);
+
+    // Fallback in case DOM loads before script
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(loadFileList, 100);
     });
   </script>
 </body>
