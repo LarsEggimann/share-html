@@ -33,25 +33,40 @@ jobs:
 
       - name: Generate file list in HTML
         run: |
-          echo "Generating file list and injecting into index.html..."
+          python3 << 'EOF'
+          import os
+          import re
           
-          # Create the JavaScript array
-          echo "var files = [" > temp_files.js
-          find . -name "*.html" ! -name "index.html" -type f | sed 's|^\./||' | while IFS= read -r file; do
-            echo "  \"$file\"," >> temp_files.js
-          done
-          echo "];" >> temp_files.js
+          # Find all HTML files except index.html
+          html_files = []
+          for root, dirs, files in os.walk('.'):
+              for file in files:
+                  if file.endswith('.html') and file != 'index.html':
+                      filepath = os.path.relpath(os.path.join(root, file), '.')
+                      html_files.append(filepath)
           
-          # Replace the placeholder in index.html
-          sed -i 's|window.htmlFiles = window.htmlFiles || \[\];|window.htmlFiles = [|' index.html
+          print(f"Found HTML files: {html_files}")
           
-          # Insert the file list after the opening bracket
-          find . -name "*.html" ! -name "index.html" -type f | sed 's|^\./||' | while IFS= read -r file; do
-            sed -i "s|window.htmlFiles = \[|window.htmlFiles = [\n  \"$file\",|" index.html
-          done
+          # Read index.html
+          with open('index.html', 'r') as f:
+              content = f.read()
           
-          echo "Updated index.html with file list"
-          grep -A 10 "window.htmlFiles" index.html
+          # Create the JavaScript array string
+          files_array = '[' + ',\n    '.join([f'"{file}"' for file in html_files]) + ']'
+          
+          # Replace the placeholder
+          content = re.sub(
+              r'window\.htmlFiles = window\.htmlFiles \|\| \[\];',
+              f'window.htmlFiles = {files_array};',
+              content
+          )
+          
+          # Write back to index.html
+          with open('index.html', 'w') as f:
+              f.write(content)
+          
+          print("Updated index.html successfully!")
+          EOF
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
