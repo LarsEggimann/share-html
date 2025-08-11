@@ -34,10 +34,9 @@ jobs:
       - name: Generate file list
         run: |
           echo "window.htmlFiles = [" > file-list.js
-          find . -name "*.html" ! -name "index.html" -type f | sed 's|^\./||' | while read file; do
-            echo "  \"$file\"," >> file-list.js
-          done
+          find . -name "*.html" ! -name "index.html" -type f | sed 's|^\./||' | sed 's/.*/"&",/' >> file-list.js
           echo "];" >> file-list.js
+          echo "Generated file-list.js:"
           cat file-list.js
 
       - name: Setup Pages
