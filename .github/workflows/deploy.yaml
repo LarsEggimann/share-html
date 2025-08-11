@@ -31,6 +31,15 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Generate file list
+        run: |
+          echo "window.htmlFiles = [" > file-list.js
+          find . -name "*.html" ! -name "index.html" -type f | sed 's|^\./||' | while read file; do
+            echo "  \"$file\"," >> file-list.js
+          done
+          echo "];" >> file-list.js
+          cat file-list.js
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 

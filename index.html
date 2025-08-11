@@ -8,40 +8,25 @@
   <h1>Available Notebooks</h1>
   
   <ul id="notebook-list">Loading...</ul>
+  
+  <script src="file-list.js"></script>
   <script>
-    const user = "LarsEggimann";
-    const repo = "share-html";
-    const branch = "main";
-
-    async function fetchHTMLFiles(path = "") {
-      const url = `https://api.github.com/repos/${user}/${repo}/contents/${path}?ref=${branch}`;
-      const res = await fetch(url);
-      if (!res.ok) return [];
-      const files = await res.json();
-      let list = [];
-
-      for (const file of files) {
-        if (file.type === "file" && file.name.endsWith(".html") && file.name !== "index.html") {
-          list.push(path + file.name);
-        } else if (file.type === "dir") {
-          const sub = await fetchHTMLFiles(path + file.name + "/");
-          list = list.concat(sub);
-        }
-      }
-      return list;
-    }
-
-    fetchHTMLFiles().then(files => {
+    document.addEventListener('DOMContentLoaded', function() {
       const ul = document.getElementById("notebook-list");
-      ul.innerHTML = "";
-      files.forEach(file => {
-        const li = document.createElement("li");
-        const a = document.createElement("a");
-        a.href = file;
-        a.textContent = file;
-        li.appendChild(a);
-        ul.appendChild(li);
-      });
+      
+      if (typeof window.htmlFiles !== 'undefined' && window.htmlFiles.length > 0) {
+        ul.innerHTML = "";
+        window.htmlFiles.forEach(file => {
+          const li = document.createElement("li");
+          const a = document.createElement("a");
+          a.href = file;
+          a.textContent = file;
+          li.appendChild(a);
+          ul.appendChild(li);
+        });
+      } else {
+        ul.innerHTML = "<li>No HTML files found.</li>";
+      }
     });
   </script>
 </body>
