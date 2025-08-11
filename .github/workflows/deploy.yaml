@@ -31,19 +31,27 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Generate file list
+      - name: Generate file list in HTML
         run: |
-          echo "Generating file list..."
-          echo "window.htmlFiles = [" > file-list.js
+          echo "Generating file list and injecting into index.html..."
+          
+          # Create the JavaScript array
+          echo "var files = [" > temp_files.js
           find . -name "*.html" ! -name "index.html" -type f | sed 's|^\./||' | while IFS= read -r file; do
-            echo "  \"$file\"," >> file-list.js
+            echo "  \"$file\"," >> temp_files.js
           done
-          echo "];" >> file-list.js
-          echo "Generated file-list.js content:"
-          cat file-list.js
-          echo ""
-          echo "File size:" $(wc -c < file-list.js) "bytes"
-          echo "File exists:" $(test -f file-list.js && echo "yes" || echo "no")
+          echo "];" >> temp_files.js
+          
+          # Replace the placeholder in index.html
+          sed -i 's|window.htmlFiles = window.htmlFiles || \[\];|window.htmlFiles = [|' index.html
+          
+          # Insert the file list after the opening bracket
+          find . -name "*.html" ! -name "index.html" -type f | sed 's|^\./||' | while IFS= read -r file; do
+            sed -i "s|window.htmlFiles = \[|window.htmlFiles = [\n  \"$file\",|" index.html
+          done
+          
+          echo "Updated index.html with file list"
+          grep -A 10 "window.htmlFiles" index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
